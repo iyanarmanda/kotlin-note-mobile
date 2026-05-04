@@ -12,7 +12,7 @@ Android App built with kotlin and App Compact. Android material are optional. Pu
 - Excel column UI/UX style
 - Internal storage app with *Room*
 - Manual backup (export) with `.csv` format
-- Import data with `.csv` format (soon)
+- Import data with `.csv` format
 
 **Format Data**:
 |Column |Value                                      |

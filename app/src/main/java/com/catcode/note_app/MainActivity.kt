@@ -47,6 +47,15 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  private val importCsvLauncher =
+    registerForActivityResult(
+      androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+      if (uri != null) {
+        importCsv(uri)
+      }
+    }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
@@ -162,6 +171,9 @@ class MainActivity : AppCompatActivity() {
       drawerLayout = drawerLayout,
       onExport = {
         exportCsvLauncher.launch("notes-${System.currentTimeMillis()}.csv")
+      },
+      onImport = {
+        importCsvLauncher.launch(arrayOf("text/csv", "text/*"))
       }
     ).bind(moreActionMenu)
 
@@ -242,6 +254,46 @@ class MainActivity : AppCompatActivity() {
           notes = notes,
           outputStream = output
         )
+      }
+    }
+  }
+
+  private fun importCsv(uri: android.net.Uri) {
+    lifecycleScope.launch {
+      try {
+        contentResolver.openInputStream(uri)?.let { input ->
+          val notes = com.catcode.note_app.util.CsvImporter.readNotesFromCsv(input)
+          
+          if (notes.isEmpty()) {
+            AlertDialog.Builder(this@MainActivity)
+              .setTitle("Import Failed")
+              .setMessage("No valid notes found in the CSV file")
+              .setPositiveButton("OK") { _, _ -> }
+              .show()
+            return@launch
+          }
+
+          // Add all notes to the database
+          notes.forEach { note ->
+            repository.insertNote(note)
+          }
+
+          // Reload notes
+          viewModel.loadNotes()
+
+          AlertDialog.Builder(this@MainActivity)
+            .setTitle("Import Successful")
+            .setMessage("${notes.size} notes imported successfully")
+            .setPositiveButton("OK") { _, _ -> }
+            .show()
+        }
+      } catch (e: Exception) {
+        AlertDialog.Builder(this@MainActivity)
+          .setTitle("Import Error")
+          .setMessage("Error importing CSV: ${e.message}")
+          .setPositiveButton("OK") { _, _ -> }
+          .show()
+        e.printStackTrace()
       }
     }
   }

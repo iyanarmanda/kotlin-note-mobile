@@ -11,7 +11,8 @@ import com.catcode.note_app.R
 class MoreActionDialog(
   private val activity: Activity,
   private val drawerLayout: DrawerLayout,
-  private val onExport: () -> Unit
+  private val onExport: () -> Unit,
+  private val onImport: () -> Unit = {}
 ) {
 
   fun bind(menuView: ImageView) {
@@ -49,5 +50,7 @@ class MoreActionDialog(
     popup.show()
   }
 
-    private fun onImport() {}
+  private fun onImport() {
+    onImport.invoke()
+  }
 }

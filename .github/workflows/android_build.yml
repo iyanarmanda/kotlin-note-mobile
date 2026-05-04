@@ -44,12 +44,12 @@ jobs:
           RAW_REF="${{ github.ref_name }}"
           
           VERSION_PART=$(echo $RAW_REF | awk -F'/' '{print $NF}')
+
+          SAFE_TAG=$(echo $VERSION_PART | sed -E 's/([0-9])-([0-9])/\1.\2/g; s/([0-9])-([0-9])/\1.\2/g')
           
           RELEASE_TITLE=$(echo $SAFE_TAG | sed 's/-/ /g')
-          
-          SAFE_TAG=$(echo $VERSION_PART | sed -E 's/([0-9])-([0-9])/\1.\2/g; s/([0-9])-([0-9])/\1.\2/g')
 
-          FILE_NAME="v-$(echo $VERSION_PART)"
+          FILE_NAME="$(echo $VERSION_PART)"
 
           echo "SAFE_TAG=$SAFE_TAG" >> $GITHUB_ENV
           echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
@@ -62,7 +62,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.SAFE_TAG }}
-          name: ${{ env.RELEASE_TITLE }}
+          name: Release ${{ env.RELEASE_TITLE }}
           body: |
             # **Karna Notes** - ${{ env.RELEASE_TITLE }}
             

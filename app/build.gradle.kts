@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
   id("com.android.application")
   kotlin("android")
@@ -23,10 +26,20 @@ android {
 
   signingConfigs {
     create("release") {
-      storeFile = rootProject.file("noteapp-release.keystore")
-      storePassword = project.property("KEYSTORE_PASSWORD")?.toString() ?: error("KEYSTORE_PASSWORD not found")
+      val localProperties = Properties()
+      val localPropertiesFile = rootProject.file("local.properties")
+      if (localPropertiesFile.exists()) {
+          localProperties.load(FileInputStream(localPropertiesFile))
+      }
+
+      val sPassword = System.getenv("KEYSTORE_PASSWORD") ?: localProperties.getProperty("KEYSTORE_PASSWORD")
+      val kPassword = System.getenv("KEY_PASSWORD") ?: localProperties.getProperty("KEY_PASSWORD")
+      val sFile = System.getenv("KEYSTORE_PATH") ?: "../noteapp-release.keystore"
+
+      storeFile = file(sFile)
+      storePassword = sPassword
       keyAlias = "noteapp"
-      keyPassword = project.property("KEY_PASSWORD")?.toString()?: error("KEY_PASSWORD not found")
+      keyPassword = kPassword
     }
   }
 

@@ -67,4 +67,7 @@ dependencies {
 
   // List
   implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+  // PDF
+  implementation("com.itextpdf:itext-core:8.0.2")
 }

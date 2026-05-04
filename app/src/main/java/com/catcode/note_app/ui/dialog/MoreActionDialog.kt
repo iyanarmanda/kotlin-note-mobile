@@ -12,7 +12,8 @@ class MoreActionDialog(
   private val activity: Activity,
   private val drawerLayout: DrawerLayout,
   private val onExport: () -> Unit,
-  private val onImport: () -> Unit = {}
+  private val onImport: () -> Unit = {},
+  private val onExportPdf: () -> Unit = {}
 ) {
 
   fun bind(menuView: ImageView) {
@@ -33,6 +34,10 @@ class MoreActionDialog(
         }
         R.id.action_export -> {
           onExport()
+          true
+        }
+        R.id.action_export_pdf -> {
+          onExportPdf()
           true
         }
         R.id.action_about -> {

@@ -11,7 +11,9 @@ import com.catcode.note_app.R
 class MoreActionDialog(
   private val activity: Activity,
   private val drawerLayout: DrawerLayout,
-  private val onExport: () -> Unit
+  private val onExport: () -> Unit,
+  private val onImport: () -> Unit = {},
+  private val onExportPdf: () -> Unit = {}
 ) {
 
   fun bind(menuView: ImageView) {
@@ -34,6 +36,10 @@ class MoreActionDialog(
           onExport()
           true
         }
+        R.id.action_export_pdf -> {
+          onExportPdf()
+          true
+        }
         R.id.action_about -> {
           drawerLayout.openDrawer(Gravity.START)
           true
@@ -49,5 +55,7 @@ class MoreActionDialog(
     popup.show()
   }
 
-    private fun onImport() {}
+  private fun onImport() {
+    onImport.invoke()
+  }
 }

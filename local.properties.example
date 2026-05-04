@@ -1,0 +1,6 @@
+# Example: /home/<YOUR_USERNAME>/Android/Sdk 
+sdk.dir=
+
+# Secret
+KEYSTORE_PASSWORD=xxx
+KEY_PASSWORD=xxx

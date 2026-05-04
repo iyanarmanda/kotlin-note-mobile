@@ -47,6 +47,24 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  private val importCsvLauncher =
+    registerForActivityResult(
+      androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+      if (uri != null) {
+        importCsv(uri)
+      }
+    }
+
+  private val exportPdfLauncher =
+    registerForActivityResult(
+      androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri ->
+      if (uri != null) {
+        exportPdf(uri)
+      }
+    }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
@@ -162,6 +180,12 @@ class MainActivity : AppCompatActivity() {
       drawerLayout = drawerLayout,
       onExport = {
         exportCsvLauncher.launch("notes-${System.currentTimeMillis()}.csv")
+      },
+      onImport = {
+        importCsvLauncher.launch(arrayOf("text/csv", "text/*"))
+      },
+      onExportPdf = {
+        exportPdfLauncher.launch("notes-${System.currentTimeMillis()}.pdf")
       }
     ).bind(moreActionMenu)
 
@@ -237,11 +261,90 @@ class MainActivity : AppCompatActivity() {
 
   private fun exportCsv(uri: android.net.Uri) {
     viewModel.exportNotes { notes ->
-      contentResolver.openOutputStream(uri)?.let { output ->
-        com.catcode.note_app.util.CsvExporter.writeNotesToCsv(
-          notes = notes,
-          outputStream = output
-        )
+      try {
+        contentResolver.openOutputStream(uri)?.let { output ->
+          com.catcode.note_app.util.CsvExporter.writeNotesToCsv(
+            notes = notes,
+            outputStream = output
+          )
+        }
+
+        AlertDialog.Builder(this@MainActivity)
+          .setTitle("Export Successful")
+          .setMessage("CSV exported successfully")
+          .setPositiveButton("OK") { _, _ -> }
+          .show()
+      } catch (e: Exception) {
+        AlertDialog.Builder(this@MainActivity)
+          .setTitle("Export Error")
+          .setMessage("Error exporting CSV: ${e.message}")
+          .setPositiveButton("OK") { _, _ -> }
+          .show()
+        e.printStackTrace()
+      }
+    }
+  }
+
+  private fun importCsv(uri: android.net.Uri) {
+    lifecycleScope.launch {
+      try {
+        contentResolver.openInputStream(uri)?.let { input ->
+          val notes = com.catcode.note_app.util.CsvImporter.readNotesFromCsv(input)
+          
+          if (notes.isEmpty()) {
+            AlertDialog.Builder(this@MainActivity)
+              .setTitle("Import Failed")
+              .setMessage("No valid notes found in the CSV file")
+              .setPositiveButton("OK") { _, _ -> }
+              .show()
+            return@launch
+          }
+
+          notes.forEach { note ->
+            repository.insertNote(note)
+          }
+
+          viewModel.loadNotes()
+
+          AlertDialog.Builder(this@MainActivity)
+            .setTitle("Import Successful")
+            .setMessage("${notes.size} notes imported successfully")
+            .setPositiveButton("OK") { _, _ -> }
+            .show()
+        }
+      } catch (e: Exception) {
+        AlertDialog.Builder(this@MainActivity)
+          .setTitle("Import Error")
+          .setMessage("Error importing CSV: ${e.message}")
+          .setPositiveButton("OK") { _, _ -> }
+          .show()
+        e.printStackTrace()
+      }
+    }
+  }
+
+  private fun exportPdf(uri: android.net.Uri) {
+    viewModel.exportNotes { notes ->
+      try {
+        contentResolver.openOutputStream(uri)?.let { output ->
+          com.catcode.note_app.util.PdfExporter.writeNotesToPdf(
+            notes = notes,
+            outputStream = output
+          )
+
+          AlertDialog.Builder(this@MainActivity)
+            .setTitle("Export Successful")
+            .setMessage("PDF exported successfully")
+            .setPositiveButton("OK") { _, _ -> }
+            .show()
+        }
+      } catch (e: Exception) {
+        AlertDialog.Builder(this@MainActivity)
+          .setTitle("Export Error")
+          .setMessage("Error exporting PDF: ${e.message}")
+          .setPositiveButton("OK") { _, _ -> }
+          .show()
+        e.printStackTrace()
       }
     }
   }

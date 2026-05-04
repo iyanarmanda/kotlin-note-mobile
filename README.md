@@ -13,6 +13,7 @@ Android App built with kotlin and App Compact. Android material are optional. Pu
 - Internal storage app with *Room*
 - Manual backup (export) with `.csv` format
 - Import data with `.csv` format
+- Export data to `.pdf` format to make hard copy
 
 **Format Data**:
 |Column |Value                                      |
